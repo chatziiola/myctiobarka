@@ -1,4 +1,4 @@
-// Comments on ncurses:
+/ Comments on ncurses:
 // -- Screen/window/pad(!) manipulation (NEED IT); 
 // output to windows and pads; 
 // -- reading temrinal input (NEED IT) ; 
