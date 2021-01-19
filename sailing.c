@@ -15,24 +15,22 @@
 #include <ncurses.h>
 
 // gameTITLE
-// - not much to say for this one -
-#define gameTITLE "Sailing-game"
-#define CTRLD 4
+#define gameTITLE "SAILING GAME"
 
 // frameDURATION
 //		@usage:
-// 		@details:
 #define frameDURATION 3000
 
 // gameWIDTH, gameHEIGHT
-//		@usage:
-// 		@details:
+//		@usage: these two values are the dimensions of our game window
+//				in which the game will take place
 #define gameWIDTH 80
 #define gameHEIGHT 20
 
 // menuWIDTH, menuHEIGHT
-//		@usage:
-// 		@details:
+//		@usage: these two values are the dimensions of our menu window, 
+//				which the users will be able to access at launch and when
+//				ESC is pressed
 #define menuWIDTH 50
 #define menuHEIGHT 18
 
