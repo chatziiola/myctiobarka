@@ -1,25 +1,7 @@
-#define landCHAR '#'
-#define crashCHAR 'X' | A_BLINK
-#define stdscrCHAR ' ' | A_REVERSE
-
-//  chtype mvinch(int y, int x); 
-
-void initialization();
-void printSequence(WINDOW * win,int startY, int startX, int length, chtype character);
-void fillSTDSCR();
-void printInMiddle(WINDOW *win, int row, char *string, chtype attrs);
-bool printMap(WINDOW * win, PLAYER *player);
-//void printCompass(WINDOW * win)
-//void arrowWind(WINDOW *win,int intensity, int direction){
-void showMenu(char * answer, char **menuOptions, WINDOW *mainMenuWin);
-void showCredits(WINDOW *menuWin);
-void showExit(WINDOW *menuWin);
-
-void initialization()
+void initCurses(WINDOW **gameWin, WINDOW **menuWin)
 {
 	// We start the curses mode ( enabling windows functionality )
 	initscr();
-
 	// Check whether the terminal has color integration
 	// -> TRUE: continue with the program
 	// -> FALSE: show error
@@ -58,6 +40,8 @@ void initialization()
 	init_pair(1, COLOR_RED, COLOR_BLACK);
 	init_pair(2, COLOR_GREEN, COLOR_BLACK);
 	init_pair(3, COLOR_BLUE, COLOR_BLACK);
+	*gameWin = newwin(gameHEIGHT,gameWIDTH, (LINES-gameHEIGHT)/2, (COLS-gameWIDTH)/2);
+	*menuWin = newwin(menuHEIGHT,menuWIDTH, (LINES-menuHEIGHT)/2, (COLS-menuWIDTH)/2);
 }
 
 void printSequence(WINDOW * win,int startY, int startX, int length, chtype character)
@@ -90,12 +74,6 @@ void printInMiddle(WINDOW *win, int row, char *string, chtype attrs)
 	mvwprintw(win, row, (maxCols-strlen(string))/2, string);
 	wattroff(win, attrs);
 }	
-
-void fillSTDSCR()
-{
-	for(int l=0; l<LINES; l++)
-		printSequence(stdscr,l,0,-1,stdscrCHAR);
-}
 
 void printLand(WINDOW * win)
 {
@@ -170,7 +148,7 @@ bool printMap(WINDOW * win, PLAYER *player)
 		{
 			mvwaddch(win,player[0].y,player[0].x, crashCHAR);
 			playersReset(player);
-			return false;
+			printMap(win,player);
 		}
 	// Now I check whether any of them have crashed with land
 	for(int l = 0; l < 2; l++)
@@ -181,9 +159,16 @@ bool printMap(WINDOW * win, PLAYER *player)
 			playerReset(&player[l],l);
 		}
 		else
-			printPlayer(win,player[l]);
+			mvwaddch(win, player[l].y, player[l].x, player[l].ch);
 
  	return true;
+}
+
+void printTitle(WINDOW *titleWin)
+{
+		box(titleWin,0,0);
+		printInMiddle(titleWin,2, gameTITLE, A_BOLD);
+		printSequence(titleWin, 3, 1, -1, ACS_HLINE );
 }
 
 void arrowWind(WINDOW *win,int intensity, int direction)
@@ -221,7 +206,10 @@ void arrowWind(WINDOW *win,int intensity, int direction)
 	wattroff(win, COLOR_PAIR(intensity));
 }
 
-void showMenu(char * answer, char *menuOptions[], WINDOW *mainMenuWin)
+
+char *menuOptions[] = {"Play","Controls","Credits","Exit",(char *)NULL};
+
+void showMenu(WINDOW *menuWin)
 {
 	MENU *mainMenu;
 	ITEM *playerChoice,
@@ -248,42 +236,40 @@ void showMenu(char * answer, char *menuOptions[], WINDOW *mainMenuWin)
 	for(int l = 0; l < menuOPTIONS; l++)
 		myItems[l] = new_item( menuOptions[l], NULL);
 	
-	keypad(mainMenuWin, true);
+	wclear(menuWin);
+	keypad(menuWin, true);
 	//  We create a menu, with items all of our initial options, 
 	//  in the desired form
 	mainMenu = new_menu((ITEM **)myItems);
 	// Set main window and subwindow for our menu 
 	// (simply creating it would not be enough, the two of them must be
 	// linked together)
-	set_menu_win(mainMenu, mainMenuWin);
+	set_menu_win(mainMenu, menuWin);
 	// The derwin() function is the same as subwin(), creating a virtual
 	// subwindow in the window supplemented, with the only difference being
 	// that the coordinates are relative to our window
 	// ( not to stdscr, the standard terminal screen )
-	set_menu_sub(mainMenu, derwin(mainMenuWin, menuOPTIONS, 20, (menuHEIGHT-menuOPTIONS-2)/2,(menuWIDTH-20)/2));
+	set_menu_sub(mainMenu, derwin(menuWin, menuOPTIONS, 20, (menuHEIGHT-menuOPTIONS-2)/2,(menuWIDTH-20)/2));
 	// Set which character should point at our current option:
 	set_menu_mark(mainMenu, " => ");
 	// Print a border for our menu and a title:
 	// 0,0 gives default characters for the vertical and horizontal lines
-	box( mainMenuWin, 0, 0 );
+	box( menuWin, 0, 0 );
 	// Print the gameTITLE in the middle of the 1st line of our menu window 
-	printInMiddle(mainMenuWin, 1, gameTITLE, COLOR_PAIR(1));
-	mvwaddch(mainMenuWin, 2, 0, ACS_LTEE);
-    mvwhline(mainMenuWin, 2, 1, ACS_HLINE, menuWIDTH-2);
-    mvwaddch(mainMenuWin, 2, menuWIDTH-1, ACS_RTEE);
+	printTitle(menuWin);
 	// We set the menu options: 
 	//  We make our menu visible, and initialize our 'choiceIsMade' boolean
 	//  to false
-	bool choiceIsMade = false;
 	//	printInMiddle(stdscr, -1, "F1 to exit", COLOR_PAIR(1)| A_BLINK);
 	refresh();
 
 	post_menu(mainMenu);
-	wrefresh(mainMenuWin);
+	wrefresh(menuWin);
 	
-	while(!choiceIsMade)
+	ch = 0;
+	while( ch != 10 )
 	{
-		ch = wgetch(mainMenuWin);
+		ch = wgetch(menuWin);
 		switch(ch)
 		{
 			case KEY_DOWN:
@@ -295,55 +281,69 @@ void showMenu(char * answer, char *menuOptions[], WINDOW *mainMenuWin)
 			// The value 10 is associated with the enter key
 			case 10:
 				playerChoice = current_item(mainMenu);
-				choiceIsMade = true;
 		}
-		wrefresh(mainMenuWin);
+		wrefresh(menuWin);
 	}
-	wclear(mainMenuWin);
-	wrefresh(mainMenuWin);
-
+	wclear(menuWin);
+	wrefresh(menuWin);
 	unpost_menu(mainMenu);
 	for(int l=0; l < menuOPTIONS; l++)
 		free_item(myItems[l]);
 	free_menu(mainMenu);
-	strcpy(answer, item_name(playerChoice));
+
+	if(strcmp(item_name(playerChoice),"Controls") == 0)
+		showControls(menuWin);
+	else if(strcmp(item_name(playerChoice),"Credits") == 0)
+		showCredits(menuWin);
+	else if(strcmp(item_name(playerChoice),"Exit") == 0)
+		showExit(menuWin);
 }
 
-void showCredits(WINDOW *menuWin)
+void showCredits(WINDOW *credWin)
 {
-		box(menuWin,0,0);
-		printInMiddle(menuWin,2, gameTITLE, A_BOLD);
-		printInMiddle(menuWin,5, "Created by:", A_NORMAL);
-		printInMiddle(menuWin,6, "Lamprinos Chatziioannou", A_NORMAL);
-		printInMiddle(menuWin,7, "Georgios Panagiotidis", A_NORMAL);
-		printInMiddle(menuWin,-2, "Press any key to exit.", A_NORMAL);
-		wrefresh(menuWin);
+		printTitle(credWin);
+		printInMiddle(credWin,5, "Created by:", A_NORMAL);
+		printInMiddle(credWin,6, "Lamprinos Chatziioannou", A_NORMAL);
+		printInMiddle(credWin,7, "Georgios Panagiotidis", A_NORMAL);
+		printInMiddle(credWin,-2, "Press any key to exit.", A_NORMAL);
+		wrefresh(credWin);
 		getch();
+		showMenu(credWin);
 }
 
-void showExit(WINDOW *menuWin)
+void showExit(WINDOW *exitWin)
 {
-		box(menuWin,0,0);
-		printInMiddle(menuWin,2, gameTITLE, A_BOLD);
-		printInMiddle(menuWin,6, "Thanks for playing our game", A_BOLD);
-		printInMiddle(menuWin,8, "Created by:", A_NORMAL);
-		printInMiddle(menuWin,9, "Lamprinos Chatziioannou", A_NORMAL);
-		printInMiddle(menuWin,10, "Georgios Panagiotidis", A_NORMAL);
-		printInMiddle(menuWin,-2, "Press any key to exit.", A_NORMAL);
-		wrefresh(menuWin);
+		printTitle(exitWin);
+		printInMiddle(exitWin,6, "Thanks for playing our game", A_BOLD);
+		printInMiddle(exitWin,8, "Created by:", A_NORMAL);
+		printInMiddle(exitWin,9, "Lamprinos Chatziioannou", A_NORMAL);
+		printInMiddle(exitWin,10, "Georgios Panagiotidis", A_NORMAL);
+		printInMiddle(exitWin,-2, "Press any key to exit.", A_NORMAL);
+		wrefresh(exitWin);
 		getch();
+		endwin();
+		exit(1);
 }
 
-void showControls(WINDOW *menuWin)
+void showControls(WINDOW *ctrlWin)
 {
-		box(menuWin,0,0);
-		printInMiddle(menuWin,2, gameTITLE, A_BOLD);
-		printInMiddle(menuWin,6, "Player 1:", A_BOLD);
-		printInMiddle(menuWin,7, "Moves with the arrow keys, 3 keystrokes per turn", A_NORMAL);
-		printInMiddle(menuWin,10, "Player 2:", A_BOLD);
-		printInMiddle(menuWin,11, "Moves with WASD, also 3 keystrokes per turn", A_NORMAL);
-		printInMiddle(menuWin,-2, "Press any key to exit.", A_NORMAL);
-		wrefresh(menuWin);
+		printTitle(ctrlWin);
+		printInMiddle(ctrlWin,6, "Player 1:", A_BOLD);
+		printInMiddle(ctrlWin,7, "Moves with the arrow keys, 3 keystrokes per turn", A_NORMAL);
+		printInMiddle(ctrlWin,10, "Player 2:", A_BOLD);
+		printInMiddle(ctrlWin,11, "Moves with WASD, also 3 keystrokes per turn", A_NORMAL);
+		printInMiddle(ctrlWin,-2, "Press any key to exit.", A_NORMAL);
+		wrefresh(ctrlWin);
 		getch();
+		showMenu(ctrlWin);
 }
 
+// TODO, this should be taken care of reasonably easily,
+void showIntro(WINDOW *introWin)
+{
+		printTitle(introWin);
+		mvwprintw(introWin, 4,1,"\aThis is a two player game...");
+		printInMiddle(introWin, -2, "Press any key to continue", A_BLINK);
+		wrefresh(introWin);
+		wclear(introWin);
+}
