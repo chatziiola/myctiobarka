@@ -37,7 +37,6 @@ typedef struct _game_player{
 
 char *menuOptions[] = {"Play","Credits","Exit",(char *)NULL};
 
-void airArrow(WINDOW *win,int intensity, int direction);
 void initCurses(WINDOW **gameWin, WINDOW **menuWin);
 void initPlayers(WINDOW * win,PLAYER *players);
 void mvPlayer(PLAYER *player, char direction);
@@ -52,6 +51,7 @@ void showMenu(WINDOW *menuWin);
 void showCredits(WINDOW *credWin);
 void showExit(WINDOW *exitWin);
 void showIntro(WINDOW *introWin);
+void wprintAirArrow(WINDOW *win,int intensity, int direction);
 void wprintCurrentState(WINDOW * win, PLAYER *player);
 void wprintInMiddle(WINDOW *win, int row, char *string, int attrs);
 void wprintLand(WINDOW * win);
@@ -91,38 +91,6 @@ int main()
 		playATurn(players, gameWin, menuWin, scrTitleWin, plrDataWin, wndDataWin);
 	
 	return 0;
-}
-
-// airArrow
-// 		@desc: Prints an arrow(^v<>) and the 'intensity' colored at the given
-// 		window 'win'. 
-// 		@notice: should only be used with the wndDataWin
-void airArrow(WINDOW *win,int intensity, int direction)
-{
-	// This function simply prints the arrow we want to describe the wind
-	// There are 4 types of arrows based on direction (UP,DOWN,LEFT,RIGHT)
-	// and 4 categories based on intensity (lvl1,2,3,4) each of which is 
-	// "expressed" by a different color
-	mvwaddch(win,0,0,ACS_VLINE);
-	wattron(win, COLOR_PAIR(intensity));
-	// Going clockwise
-	wprintw(win," WIND: %d  ", intensity);
-	switch(direction)
-	{
-		case 0:
-			waddch(win,ACS_UARROW);
-			break;
-		case 1:
-			waddch(win,ACS_RARROW);
-			break;
-		case 2:
-			waddch(win,ACS_DARROW);
-			break;
-		case 3:
-			waddch(win,ACS_LARROW);
-			break;
-	}
-	wattroff(win, COLOR_PAIR(intensity));
 }
 
 // initCurses: 
@@ -262,7 +230,7 @@ void playATurn(PLAYER *players, WINDOW *gameWin, WINDOW *menuWin, WINDOW *scrTit
 	// Print it on the screen so that players know beforehand about its 
 	// direction and intensity
 	airIntensity++;
-	airArrow(wndDataWin, airIntensity, airDirection);
+	wprintAirArrow(wndDataWin, airIntensity, airDirection);
 	// Clear a box at the "middle top" of the screen so that we can show a
 	// title for each phase of the game
 	wclear(scrTitleWin);
@@ -727,6 +695,38 @@ void showIntro(WINDOW *introWin)
 		wrefresh(introWin);
 		getch();
 		wclear(introWin);
+}
+
+// wprintAirArrow
+// 		@desc: Prints an arrow(^v<>) and the 'intensity' colored at the given
+// 		window 'win'. 
+// 		@notice: should only be used with the wndDataWin
+void wprintAirArrow(WINDOW *win,int intensity, int direction)
+{
+	// This function simply prints the arrow we want to describe the wind
+	// There are 4 types of arrows based on direction (UP,DOWN,LEFT,RIGHT)
+	// and 4 categories based on intensity (lvl1,2,3,4) each of which is 
+	// "expressed" by a different color
+	mvwaddch(win,0,0,ACS_VLINE);
+	wattron(win, COLOR_PAIR(intensity));
+	// Going clockwise
+	wprintw(win," WIND: %d  ", intensity);
+	switch(direction)
+	{
+		case 0:
+			waddch(win,ACS_UARROW);
+			break;
+		case 1:
+			waddch(win,ACS_RARROW);
+			break;
+		case 2:
+			waddch(win,ACS_DARROW);
+			break;
+		case 3:
+			waddch(win,ACS_LARROW);
+			break;
+	}
+	wattroff(win, COLOR_PAIR(intensity));
 }
 
 // wprintCurrentState:
