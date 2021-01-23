@@ -9,8 +9,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
-#define gameTITLE "SAILING GAME"
+#define gameTITLE "MYCTIOBAPKA"
 #define gameWIDTH 80
 #define gameHEIGHT 20
 
@@ -33,28 +34,30 @@ typedef struct _game_player{
 	int noOfChoices;
 }PLAYER;
 
+
+char *menuOptions[] = {"Play","Controls","Credits","Exit",(char *)NULL};
+
 void airArrow(WINDOW *win,int intensity, int direction);
 void initCurses(WINDOW **gameWin, WINDOW **menuWin);
 void initPlayers(WINDOW * win,PLAYER *players);
-void setPlayerChar(WINDOW *win, PLAYER *player, int winLength);
+void mvPlayer(PLAYER *player, char direction);
+void playATurn(PLAYER *players, WINDOW *gameWin, WINDOW *menuWin, WINDOW *scrTitleWin, WINDOW *plrDataWin, WINDOW *wndDataWin);
+void resetPlayerLocation(PLAYER *player, char index);
 int setCourse(WINDOW *plrDataWin, PLAYER *player);
+void setPlayerChar(WINDOW *win, PLAYER *player, int winLength);
 void setPlayerName(WINDOW *win, PLAYER *player, int winLength);
-void showChoices(WINDOW *win, PLAYER player);
-void showControls(WINDOW *ctrlWin);
+void showWinner(WINDOW *win, PLAYER winner);
+void showPlayerKeystrokes(WINDOW *win, PLAYER player);
+void showMenu(WINDOW *menuWin);
 void showCredits(WINDOW *credWin);
 void showExit(WINDOW *exitWin);
 void showIntro(WINDOW *introWin);
-void showMenu(WINDOW *menuWin);
-void resetPlayerLocation(PLAYER *player, char index);
-void playATurn(PLAYER *players, WINDOW *gameWin, WINDOW *menuWin, WINDOW *scrTitleWin, WINDOW *plrDataWin, WINDOW *wndDataWin);
+void wprintCurrentState(WINDOW * win, PLAYER *player);
 void wprintInMiddle(WINDOW *win, int row, char *string, int attrs);
-void printLand(WINDOW * win);
-bool printMap(WINDOW * win, PLAYER *player);
-void printPlData(WINDOW *win, PLAYER *players);
+void wprintLand(WINDOW * win);
+void wprintPlayerData(WINDOW *win, PLAYER *players);
 void wprintTimesChar(WINDOW * win,int startY, int startX, int length, int character);
-void printTitle(WINDOW *titleWin);
-
-char *menuOptions[] = {"Play","Controls","Credits","Exit",(char *)NULL};
+void wprintTitle(WINDOW *titleWin);
 
 int main()
 {
@@ -79,7 +82,7 @@ int main()
 	WINDOW *plrDataWin  = derwin(gameWin,1,60,18,2); 
 	WINDOW *wndDataWin	= derwin(gameWin,1,10,18,66);
 
-	// printLand(gameWin);
+	// wprintLand(gameWin);
 	// wrefresh(gameWin);
 	showIntro(menuWin);
 
@@ -92,6 +95,38 @@ int main()
 	// Releasing memory allocated during the creation of our menu, end ncurses
 	endwin();
 	return 0;
+}
+
+// airArrow
+// 		@desc: Prints an arrow(^v<>) and the 'intensity' colored at the given
+// 		window 'win'. 
+// 		@notice: should only be used with the wndDataWin
+void airArrow(WINDOW *win,int intensity, int direction)
+{
+	// This function simply prints the arrow we want to describe the wind
+	// There are 4 types of arrows based on direction (UP,DOWN,LEFT,RIGHT)
+	// and 4 categories based on intensity (lvl1,2,3,4) each of which is 
+	// "expressed" by a different color
+	mvwaddch(win,0,0,ACS_VLINE);
+	wattron(win, COLOR_PAIR(intensity));
+	// Going clockwise
+	wprintw(win," WIND: %d  ", intensity);
+	switch(direction)
+	{
+		case 0:
+			waddch(win,ACS_UARROW);
+			break;
+		case 1:
+			waddch(win,ACS_RARROW);
+			break;
+		case 2:
+			waddch(win,ACS_DARROW);
+			break;
+		case 3:
+			waddch(win,ACS_LARROW);
+			break;
+	}
+	wattroff(win, COLOR_PAIR(intensity));
 }
 
 // initCurses: 
@@ -152,127 +187,6 @@ void initCurses(WINDOW **gameWin, WINDOW **menuWin)
 	keypad(*gameWin,true);
 }
 
-// wprintTimesChar:
-// 		@desc: prints the 'character' 'length' times, starting from
-// 		'startY','startX' coordinates of the 'win' window
-void wprintTimesChar(WINDOW * win,int startY, int startX, int length, int character)
-{
-	// Move the cursor to the starting location
-	wmove(win, startY, startX);
-	// If the user has passed a negative value it means that they want 
-	// to fill the rest of the line
-	if(length < 0)
-	{
-		// Get the dimensions of our window, storing, the Y coord at startY and
-		// X coord at length. This way we can then subtract startX from length
-		// and have, exactly, the number of characters we need to fill the line
-		// (without printing on the window's border)
-		getmaxyx(win, startY, length);
-		length -= startX+1; 
-	}
-	// Add the characters
-	for(int l=0; l < length; l++ )
-		waddch(win,character);	
-}
-
-// wprintInMiddle:
-// 		@desc: prints the 'string' passed as an argument in the middle of the 
-// 		given window *win, at line 'row' with the attributes that were passed
-void wprintInMiddle(WINDOW *win, int row, char *string, int attrs)
-{
-	// These two variables will hold the dimensions of our window
-	int maxRows, maxCols;
-	// getmaxyx function simply gives us the maximum y and x for that window
-	getmaxyx(win, maxRows, maxCols);
-
-	// If the value of row is negative then the string will be printed
-	// |row| lines from the bottom of the window
-	if (row < 0)
-		row += maxRows -1;
-
-	wattron(win, attrs);
-	// Print string in win after moving to y line and column () so that the
-	// string is placed in the middle of the window
-	mvwprintw(win, row, (maxCols-strlen(string))/2, string);
-	wattroff(win, attrs);
-}
-
-// setPlayerChar:
-// 		@desc: Uses the window 'win' to interact with the user, printing a
-// 		prompt to give the character they (users) want their boat to be
-// 		represented by
-void setPlayerChar(WINDOW *win, PLAYER *player, int winLength)
-{
-	// Specific character type for the input collected using the ncurses funcs
-	int playerChar;
-	int	confirmation;
-	// Clear the window, print the prompt and refresh window so that the user
-	// sees it
-	wclear(win);
-	wprintInMiddle(win,1,"Please enter your character:",A_NORMAL);
-	wrefresh(win);
-	// Get input
-	playerChar = wgetch(win);
-	// Clear the window, print the new prompt
-	wclear(win);
-	wprintInMiddle(win,1,"Is it ok? (Y/N)",A_NORMAL);
-	mvwaddch(win,2, winLength/2, playerChar|A_BOLD);
-	wrefresh(win);
-	confirmation = wgetch(win);
-	// If the character we received on the confirmation screen is 'Y', as
-	// urged or 'Enter'
-	if ( (confirmation == 'Y') || (confirmation == 10) )
-		player->character = playerChar;
-	else
-		// Repeat the same process till we have the necessary confirmation from
-		// the user
-		setPlayerChar(win, player, winLength);
-}
-
-// setPlayerName:
-// 		@desc: Uses the window 'win' to interact with the user, printing a
-// 		prompt and initially setting their name string. When finished (the pro
-// 		cess may repeat itself for as many times needed to ensure that the user
-// 		passed the name they wanted), will call setPlayerChar() to complete
-// 		this part of the player's initialization
-void setPlayerName(WINDOW *win, PLAYER *player, int winLength)
-{
-	char *name;
-	int confirmation;
-	name = (char *)malloc(20);
-	wclear(win);
-	wprintInMiddle(win,1,"Please enter your name:",A_NORMAL);
-	mvwaddch(win,2,10,'>');
-	wrefresh(win);
-	echo();
-	wgetstr(win,name);
-	wclear(win);
-	wprintInMiddle(win,1,"Is it ok? (Y/N)",A_NORMAL);
-	wprintInMiddle(win,2,name,A_NORMAL);
-	noecho();
-	wrefresh(win);
-	confirmation = wgetch(win);
-	if ( ( confirmation == 'Y') || (confirmation == 10))
-	{
-		strcpy(player->name, name);
-		setPlayerChar(win, player, winLength);
-	}
-	else
-		setPlayerName(win, player, winLength);
-}
-
-// resetPlayerLocation:
-// 		@desc: Changes the 'player' values for x and y according to the index 
-// 		passed as the second parameter. If index == 0 then player must be 
-// 		'PLAYER 1' and their location is 're'set to 'PLAYER 1' start, while
-// 		if index == 1, they must be 'PLAYER 2' 
-void resetPlayerLocation(PLAYER *player, char index)
-{
-	// This way we also allow for future updates -> More PLAYERS
-	player->x = 50;
-	player->y = 7-index;
-}
-
 // initPlayers:
 // 		@desc: This function is meant to be used to resiz
 void initPlayers(WINDOW * win,PLAYER *players)
@@ -284,7 +198,7 @@ void initPlayers(WINDOW * win,PLAYER *players)
 	int maxY,maxX;
 	getmaxyx(win,maxX,maxX);
 	wclear(win);
-	printTitle(win);
+	wprintTitle(win);
 	wprintInMiddle(win,7,"Now let's start with your characters!!", A_NORMAL);
 	wprintInMiddle(win,8,"Player 1, your turn", A_BOLD);
 	wrefresh(win);
@@ -292,6 +206,145 @@ void initPlayers(WINDOW * win,PLAYER *players)
 	wprintInMiddle(win,8,"Player 2, your turn", A_BOLD);
 	wrefresh(win);
 	setPlayerName(derwin(win,5,maxX-2,10,1), &players[1], maxX);
+}
+
+// mvPlayer
+// 		@desc: Simply changes the 'x' or 'y' coordinate of the player depending
+// 		on the direction
+void mvPlayer(PLAYER *player, char direction)
+{
+	// If you're to move up (since top: y=0) y--;
+	if ( (direction == 'U') || (direction == 0) )
+		player->y -= 1;
+	// If you're to move down (since top: y=0) y++;
+	if ( (direction == 'D') || (direction == 2) )
+		player->y += 1;
+	// If you're to move right (since left: x=0) y++;
+	if ( (direction == 'R') || (direction == 1) )
+		player->x += 1;
+	// If you're to move left (since left: x=0) x--;
+	if ( (direction == 'L') || (direction == 3) )
+		player->x -= 1;
+}
+
+// playATurn
+// 		@desc: Presumably the most complex function of the entire game, this one
+// 		connects all the elements of our gui together, while also using the 
+// 		"game" functions to enforce the game functionality.
+// 		@analysis: The function can be "split" in 3:
+// 			- 1: Print GUI:
+// 				We simply print our interface:
+// 					map, player location, player data, wind location	
+// 			- 2: Get Users' Input:
+// 				Get the users' input to set the course
+// 			- 3: Print "animation:
+// 				Gradually change the map, moving the players in "frames",
+// 				one motion per frame
+void playATurn(PLAYER *players, WINDOW *gameWin, WINDOW *menuWin, WINDOW *scrTitleWin, WINDOW *plrDataWin, WINDOW *wndDataWin)
+{
+	// Part 1: Printing GUI
+	box(gameWin,0,0);
+	// Print the land with the players on it
+	wprintCurrentState(gameWin,players);
+	// Print the players' data (name,number of crashes,x,y) on the bottom
+	// left of the screen
+	wprintPlayerData(plrDataWin,players);
+	// Calculate with rand() the "air"
+	int airIntensity = rand()%4;
+	int airDirection = rand()%4;
+	// Reset the number of choices each player has made in this turn
+	players[0].noOfChoices = 0;
+	players[1].noOfChoices = 0;
+	// Print it on the screen so that players know beforehand about its 
+	// direction and intensity
+	airIntensity++;
+	airArrow(wndDataWin, airIntensity, airDirection);
+	// Clear a box at the "middle top" of the screen so that we can show a
+	// title for each phase of the game
+	wclear(scrTitleWin);
+	box(scrTitleWin,0,0);
+	wprintInMiddle(scrTitleWin, 1, "Current View", A_BOLD);
+	// scrTitleWin, plrDataWin and wndDataWin are mere subwindows of gameWin
+	wrefresh(gameWin);
+	wclear(scrTitleWin);
+	getch();
+	// Part 2: Getting Users' Input
+	box(scrTitleWin,0,0);
+	wprintInMiddle(scrTitleWin, 1, "Player 1: Choose your course", A_BOLD | A_BLINK);
+	wclear(plrDataWin);
+	wrefresh(scrTitleWin);
+	wrefresh(plrDataWin);
+	setCourse( plrDataWin, &players[0]);
+	wprintInMiddle(scrTitleWin, 1, "Player 2: Choose your course", A_BOLD | A_BLINK);
+	wclear(plrDataWin);
+	wrefresh(scrTitleWin);
+	wrefresh(plrDataWin);
+	setCourse( plrDataWin, &players[1]);
+	// Part 3: Print the "animation"
+	// The windRound variable is meant to be used as a "switch", see inside
+	// the loop
+	bool windRound = true;
+	for(int l=0; l<3; l++)
+	{
+		// if the "switch is on && the rand function gives an even number
+		// then we will "see the wind blowing"
+		if ( ((rand()%2)==0) && windRound )
+		{
+			for(int z=0; z < airIntensity; z++)
+			{
+				mvPlayer(&players[0], airDirection);
+				mvPlayer(&players[1], airDirection);
+				wprintCurrentState(gameWin, players);
+				// clear the scrTitleWin subwindow and print a "cosy" title
+				wclear(scrTitleWin);
+				box(scrTitleWin,0,0);
+				wprintInMiddle(scrTitleWin, 1, "WIND IS BLOWING", A_BOLD | COLOR_PAIR(3));
+				wrefresh(gameWin);
+				sleep(1);
+			}
+			windRound = false;
+		}
+		// If there are any more choices for each player
+		if ( l < players[0].noOfChoices )
+			mvPlayer( &players[0], players[0].course[l]);
+		if ( l < players[1].noOfChoices )
+			mvPlayer( &players[1], players[1].course[l]);
+
+		// If the game reaches an end, wprintCurrentState function will call showWinner()
+		// and terminate the game, no need for any other "controls"
+		wprintCurrentState(gameWin, players);
+		wrefresh(gameWin);
+		sleep(1);
+	}
+	// If (unluckily) the wind didn't get its chance in between the player's 
+	// motions then it has to "appear" at the end
+	if ( windRound )
+	{
+		for(int z=0; z < airIntensity; z++)
+		{
+			mvPlayer(&players[0], airDirection);
+			mvPlayer(&players[1], airDirection);
+			wprintCurrentState(gameWin, players);
+			wclear(scrTitleWin);
+			box(scrTitleWin,0,0);
+			wprintInMiddle(scrTitleWin, 1, "WIND IS BLOWING", A_BOLD | COLOR_PAIR(1));
+			wrefresh(gameWin);
+			sleep(1);
+		}
+	}
+}
+
+
+// resetPlayerLocation:
+// 		@desc: Changes the 'player' values for x and y according to the index 
+// 		passed as the second parameter. If index == 0 then player must be 
+// 		'PLAYER 1' and their location is 're'set to 'PLAYER 1' start, while
+// 		if index == 1, they must be 'PLAYER 2' 
+void resetPlayerLocation(PLAYER *player, char index)
+{
+	// This way we also allow for future updates -> More PLAYERS
+	player->x = 50;
+	player->y = 7-index;
 }
 
 // setCourse:
@@ -346,135 +399,402 @@ int setCourse(WINDOW *plrDataWin, PLAYER *player)
 				exit(1);
 		}
 		// Show the options
-		showChoices(plrDataWin, *player);
+		showPlayerKeystrokes(plrDataWin, *player);
 	}
 }
 
-void printPlData(WINDOW *win, PLAYER *players)
+// setPlayerChar:
+// 		@desc: Uses the window 'win' to interact with the user, printing a
+// 		prompt to give the character they (users) want their boat to be
+// 		represented by
+void setPlayerChar(WINDOW *win, PLAYER *player, int winLength)
 {
-	mvwprintw(win,0,0,"%s: (%d) x:%d y:%d", players[0].name,
-			players[0].crashes, players[0].x, players[0].y);
-	mvwprintw(win,0,30,"| %s: (%d) x:%d y:%d", players[1].name,
-			players[1].crashes, players[1].x, players[1].y);
+	// Specific character type for the input collected using the ncurses funcs
+	int playerChar;
+	int	confirmation;
+	// Clear the window, print the prompt and refresh window so that the user
+	// sees it
+	wclear(win);
+	wprintInMiddle(win,1,"Please enter your character:",A_NORMAL);
+	wrefresh(win);
+	// Get input
+	playerChar = wgetch(win);
+	// Clear the window, print the new prompt
+	wclear(win);
+	wprintInMiddle(win,1,"Is it ok? (Y/N)",A_NORMAL);
+	mvwaddch(win,2, winLength/2, playerChar|A_BOLD);
+	wrefresh(win);
+	confirmation = wgetch(win);
+	// If the character we received on the confirmation screen is 'Y', as
+	// urged or 'Enter'
+	if ( (playerChar != 10)  && ((confirmation == 'Y') || (confirmation == 10)))
+		player->character = playerChar;
+	else
+		// Repeat the same process till we have the necessary confirmation from
+		// the user
+		setPlayerChar(win, player, winLength);
 }
 
-void playerMove(PLAYER *player, char direction)
+// setPlayerName:
+// 		@desc: Uses the window 'win' to interact with the user, printing a
+// 		prompt and initially setting their name string. When finished (the pro
+// 		cess may repeat itself for as many times needed to ensure that the user
+// 		passed the name they wanted), will call setPlayerChar() to complete
+// 		this part of the player's initialization
+void setPlayerName(WINDOW *win, PLAYER *player, int winLength)
 {
-	if ( (direction == 'U') || (direction == 0) )
-		player->y -= 1;
-	if ( (direction == 'D') || (direction == 2) )
-		player->y += 1;
-	if ( (direction == 'R') || (direction == 1) )
-		player->x += 1;
-	if ( (direction == 'L') || (direction == 3) )
-		player->x -= 1;
+	char *name;
+	int confirmation;
+	name = (char *)malloc(20);
+	wclear(win);
+	wprintInMiddle(win,1,"Please enter your name:",A_NORMAL);
+	mvwaddch(win,2,10,'>');
+	wrefresh(win);
+	echo();
+	wgetstr(win,name);
+	wclear(win);
+	wprintInMiddle(win,1,"Is it ok? (Y/N)",A_NORMAL);
+	wprintInMiddle(win,2,name,A_NORMAL);
+	noecho();
+	wrefresh(win);
+	confirmation = wgetch(win);
+	if (( name[0] != 10) && (( confirmation == 'Y') || (confirmation == 10)))
+	{
+		strcpy(player->name, name);
+		setPlayerChar(win, player, winLength);
+	}
+	else
+		setPlayerName(win, player, winLength);
 }
 
-void playATurn(PLAYER *players, WINDOW *gameWin, WINDOW *menuWin, WINDOW *scrTitleWin, WINDOW *plrDataWin, WINDOW *wndDataWin)
+// showWinner:
+//		@desc: Clear the screen, print the winner along with congrats
+void showWinner(WINDOW *win, PLAYER winner)
 {
-	// Algorithm
-	// Printmap and current status
-	// -> map, pldata, wind (calc it as well) && title: Current data, sleep(5);
-	// Change title to "Player 1, select your course"
-	// only KEY_UP/RIGHT/LEFT/DOWN acceptable for input and backspace deletes 
-	// last choice
-	// Now the same for Player 2
-	// showAnimation:
-	// -> Print a different "Frame, lets say 4+intensity" in which every
-	// ship mvs one block,  evaluating the condition, ofc before moving
-	// -> that last part should use a bool type var so that we know whether any
-	// of the players have won -> you can add it to player type
-	// evaluate the condition for each player-> if n1 has won
-	// call that function again recursive from that point of view
-	// Frame for all of the game
-	box(gameWin,0,0);
-	// Print the land with the players on it
-	printMap(gameWin,players);
-	// Print the players' coordinates and crashes at the bottom of the screen
-	printPlData(plrDataWin,players);
-	// Calculate with rand() the "air"
-	int airIntensity = rand()%4;
-	int airDirection = rand()%4;
-	players[0].noOfChoices = 0;
-	players[1].noOfChoices = 0;
-	// Print it on the screen so that players know beforehand about its 
-	// direction and intensity
-	airIntensity++;
-	airArrow(wndDataWin, airIntensity, airDirection);
-	// Clear a box at the "middle top" of the screen so that we can show a
-	// title for each phase of the game
-	wclear(scrTitleWin);
-	box(scrTitleWin,0,0);
-	wprintInMiddle(scrTitleWin, 1, "Current View", A_BOLD);
-	// All the windows I am currently using are simply means to an end, they're
-	// not actual windows, but to make the code more readable and easily 
-	// expandable I've decided in splitting the gameWin into different
-	// "subwindows", so that only the gameWin needs to be refreshed
-	wrefresh(gameWin);
+	wclear(win);
+	wprintInMiddle(win,5, "----------------------", A_NORMAL);
+	wprintInMiddle(win,6, "|    CONGRATULATIONS   |", A_NORMAL);
+	wprintInMiddle(win,7, "----------------------", A_NORMAL);
+	wprintInMiddle(win,8, winner.name, A_BOLD);
+	wprintInMiddle(win,8, "is the WINNER!!!!", A_BOLD);
+	wprintInMiddle(win,-1, "Press any key to exit", A_BOLD);
+	wrefresh(win);
 	getch();
-	// We wait 5 seconds so that the players know where they are
-	// And now we get their input for their motions
-	wclear(scrTitleWin);
-	box(scrTitleWin,0,0);
-	wprintInMiddle(scrTitleWin, 1, "Player 1: Choose your course", A_BOLD | A_BLINK);
-	wclear(plrDataWin);
-	wrefresh(scrTitleWin);
-	wrefresh(plrDataWin);
-	setCourse( plrDataWin, &players[0]);
-	wprintInMiddle(scrTitleWin, 1, "Player 2: Choose your course", A_BOLD | A_BLINK);
-	wclear(plrDataWin);
-	wrefresh(scrTitleWin);
-	wrefresh(plrDataWin);
-	setCourse( plrDataWin, &players[1]);
-	bool windRound = true;
-	for(int l=0; l<3; l++)
-	{
-		if ( ((rand()%2)==0) && windRound )
-		{
-			for(int z=0; z < airIntensity; z++)
-			{
-				playerMove(&players[0], airDirection);
-				playerMove(&players[1], airDirection);
-				if ( printMap(gameWin, players) )
-					exit(1);
-				wclear(scrTitleWin);
-				box(scrTitleWin,0,0);
-				wprintInMiddle(scrTitleWin, 1, "WIND IS BLOWING", A_BOLD | COLOR_PAIR(1));
-				wrefresh(gameWin);
-				sleep(1);
-			}
-			windRound = false;
-		}
-		if ( l < players[0].noOfChoices )
-			playerMove( &players[0], players[0].course[l]);
-		if ( l < players[1].noOfChoices )
-			playerMove( &players[1], players[1].course[l]);
+}
 
-		if ( printMap(gameWin, players) )
-			exit(1);
-		wrefresh(gameWin);
-		sleep(1);
-	}
-	// If (unluckily) the wind didn't get its chance in between the player's 
-	// motions then it has to "appear" at the end
-	if ( windRound )
+
+// showPlayerKeystrokes
+// 		@desc: Simply prints the 'keystrokes' the user may have selected
+//		(U for ARROW_UP etc.)
+// 		@notice: should only be used with the plrDataWin
+void showPlayerKeystrokes(WINDOW *win, PLAYER player)
+{
+	wclear(win);
+
+	mvwprintw(win,0,0, "%s: Choices  %d:", player.name, player.noOfChoices);
+	if ( player.noOfChoices > 0 )
+		wprintw(win, " %c", player.course[0]); 
+	if ( player.noOfChoices > 1 )
+		wprintw(win, " %c", player.course[1]); 
+	if ( player.noOfChoices > 2 )
+		wprintw(win, " %c", player.course[2]); 
+	wrefresh(win);
+}
+
+// showMenu
+// 		@desc: Create our menu with "options" the menuOptions char array,
+// 		post it so that the user is able to navigate with it and once a choice
+// 		is made, free the reserved memory and point us to the option made
+// 		(showCredits/Exit/Intro or continue in main)
+void showMenu(WINDOW *menuWin)
+{
+	MENU *mainMenu;
+	ITEM *playerChoice,
+		 *currentItem,
+		 **myItems;
+	int chInput;
+	
+	// The number of options in our menu is equal to the number of elements
+	// in the menuOptions array, initialized globally
+	// Memory for the items we want to create must be reserved:
+	// - the pointer myItems simply points to the beginning of our ITEM * array
+	// - the (ITEM **) is to turn the pointer returned by calloc into a ITEM**
+	// type of pointer
+	myItems = (ITEM **)calloc(menuOPTIONS, sizeof(ITEM *));
+
+	// The second argument of the new_item function is the description
+	// of that item, displayed right next to the item. Since we want to 
+	// keep the interface minimal we decided against having a description.
+	// We supply a NULL pointer to have an empty description.
+	// The set_item_userptr() function is responsible for the function that
+	// runs when the specific item is selected
+	for(int l = 0; l < menuOPTIONS; l++)
+		myItems[l] = new_item( menuOptions[l], NULL);
+	
+	wclear(menuWin);
+	keypad(menuWin, true);
+	//  We create a menu, with items all of our initial options, 
+	//  in the desired form
+	mainMenu = new_menu((ITEM **)myItems);
+	// Set main window and subwindow for our menu 
+	// (simply creating it would not be enough, the two of them must be
+	// linked together)
+	set_menu_win(mainMenu, menuWin);
+	// The derwin() function is the same as subwin(), creating a virtual
+	// subwindow in the window supplemented, with the only difference being
+	// that the coordinates are relative to our window
+	// ( not to stdscr, the standard terminal screen )
+	set_menu_sub(mainMenu, derwin(menuWin, menuOPTIONS, 20, (menuHEIGHT-menuOPTIONS-2)/2,(menuWIDTH-20)/2));
+	// Set which character should point at our current option:
+	set_menu_mark(mainMenu, " => ");
+	// Print a border for our menu and a title:
+	// 0,0 gives default characters for the vertical and horizontal lines
+	box( menuWin, 0, 0 );
+	// Print the gameTITLE in the middle of the 1st line of our menu window 
+	wprintTitle(menuWin);
+	//  We make our menu visible
+	post_menu(mainMenu);
+	wrefresh(menuWin);
+	
+	chInput = 0;
+	while( chInput != 10 )
 	{
-		for(int z=0; z < airIntensity; z++)
+		chInput = wgetch(menuWin);
+		switch(chInput)
 		{
-			playerMove(&players[0], airDirection);
-			playerMove(&players[1], airDirection);
-			if ( printMap(gameWin, players) )
-				exit(1);
-			wclear(scrTitleWin);
-			box(scrTitleWin,0,0);
-			wprintInMiddle(scrTitleWin, 1, "WIND IS BLOWING", A_BOLD | COLOR_PAIR(1));
-			wrefresh(gameWin);
-			sleep(1);
+			case KEY_DOWN:
+				menu_driver(mainMenu, REQ_DOWN_ITEM);
+				break;
+			case KEY_UP:
+				menu_driver(mainMenu, REQ_UP_ITEM);
+				break;
+			// The value 10 is associated with the enter key
+			case 10:
+				playerChoice = current_item(mainMenu);
+		}
+		wrefresh(menuWin);
+	}
+	// simply clean up the menu screen
+	wclear(menuWin);
+	unpost_menu(mainMenu);
+	// clean the menu from our memory (we do not want to take too much memory
+	// in case the users move back and forth to our menu)
+	for(int l=0; l < menuOPTIONS; l++)
+		free_item(myItems[l]);
+	free_menu(mainMenu);
+
+	if(strcmp(item_name(playerChoice),"Controls") == 0)
+		showIntro(menuWin);
+	else if(strcmp(item_name(playerChoice),"Credits") == 0)
+		showCredits(menuWin);
+	else if(strcmp(item_name(playerChoice),"Exit") == 0)
+		showExit(menuWin);
+}
+
+// showCredits
+// 		@desc: A simple collection of print commands so that there is a credits
+// 		page. Upon exit you get back to showMenu
+void showCredits(WINDOW *credWin)
+{
+		wprintTitle(credWin);
+		wprintInMiddle(credWin,5, "Created by:", A_NORMAL);
+		wprintInMiddle(credWin,6, "Lamprinos Chatziioannou", A_NORMAL);
+		wprintInMiddle(credWin,7, "Georgios Panagiotidis", A_NORMAL);
+		wprintInMiddle(credWin,-2, "Press any key to return to the menu.", A_NORMAL);
+		wrefresh(credWin);
+		getch();
+		showMenu(credWin);
+}
+
+// showExit
+// 		@desc: A simple collection of print commands to thank the user for 
+// 		playing the game and then game termination
+void showExit(WINDOW *exitWin)
+{
+		wprintTitle(exitWin);
+		wprintInMiddle(exitWin,6, "Thanks for playing our game", A_BOLD);
+		wprintInMiddle(exitWin,8, "Created by:", A_NORMAL);
+		wprintInMiddle(exitWin,9, "Lamprinos Chatziioannou", A_NORMAL);
+		wprintInMiddle(exitWin,10, "Georgios Panagiotidis", A_NORMAL);
+		wprintInMiddle(exitWin,-2, "Press any key to exit.", A_NORMAL);
+		wrefresh(exitWin);
+		getch();
+		endwin();
+		exit(1);
+}
+
+// showIntro
+// 		@desc: A simple colleciton of print commands to show the basics of the
+// 		game (such as plot, controls and GUI). Upon exit you get back to
+// 		showMenu
+void showIntro(WINDOW *introWin)
+{
+	//Screen 1
+		wprintTitle(introWin);
+		wprintInMiddle(introWin, 4, "Hello friends and welcome to the", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 5, gameTITLE, A_BOLD | COLOR_PAIR(4) | A_BLINK);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 7, "In this, multiplayer, game the two of you", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 8, "Are trying to beat each other on your way to", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 9, "The finish line! Each of you has up to 5", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 10, "keystrokes per turn, but...", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 11, "WATCH OUT!", A_BOLD);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 12, "You do not know when wind will strike!", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, -1, "Press any key to continue", A_BLINK);
+		wrefresh(introWin);
+		getch();
+		wclear(introWin);
+	// Screen 2
+		wprintTitle(introWin);
+		wprintInMiddle(introWin, 4, "However, fear not!", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 6, "You will know everything beforehand!", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 7, "Just make sure to pay attention to ", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 8, "the wind arrow and intensity on the bottom", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 9, "right corner, giving you both intensity", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 10, "AND DIRECTION!", A_BOLD);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 12, "Use them wisely", A_UNDERLINE);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, -1, "Press any key to continue", A_BLINK);
+		wrefresh(introWin);
+		getch();
+		wclear(introWin);
+	// Screen 3
+		wprintTitle(introWin);
+		wprintInMiddle(introWin, 5, "Now, before you begin your journey!", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 6, "In order to move each one of you will", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 7, "use the arrow keys on their turn", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 8, "If you've made a wrong choice, dont worry", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 9, "You can always use backspace to fix your", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 10, "keystrokes, which will be shown on the bottom", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 11, "left corner. When you have finished with your", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 12, "keystrokes, press enter so that the next phase", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 13, "will begin.", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, -2, "You can always exit using F1", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, -1, "Press any key to continue", A_BLINK);
+		wrefresh(introWin);
+		getch();
+		wclear(introWin);
+}
+
+// wprintCurrentState:
+// 		@desc: Slightly complex function whose job is to not only print the
+// 		map and the players but also check whether any kind of crash occurs and
+// 		if there is any winner
+void wprintCurrentState(WINDOW * win, PLAYER *player)
+{
+	// Print the terrain, deleting everything else in the background
+	wclear(win);
+	wprintLand(win);
+	// Check for a crash between the two players
+	if( (player[0].x == player[1].x) && ( player[0].y == player[1].y ))
+	{
+			attron( COLOR_PAIR(5) );
+			mvwaddch(win,player[0].y,player[0].x, crashCHAR);
+			attroff( COLOR_PAIR(5) );
+			player[0].crashes++;
+			player[1].crashes++;
+			resetPlayerLocation(&player[0], 0);
+			resetPlayerLocation(&player[1], 1);
+	}
+	// Check, individually, whether any of them have crashed with the land
+	for(int l = 0; l < 2; l++)
+	{
+		// Check the character where the boat would be printed
+		if(	(mvwinch(win,player[l].y, player[l].x)&A_CHARTEXT) == landCHAR )
+		{
+			// If so print a crashCharacter at their location
+			attron( COLOR_PAIR(5) );
+			mvwaddch(win,player[l].y,player[l].x, crashCHAR);
+			attroff( COLOR_PAIR(5) );
+			// Move them back to their starting location
+			player[l].crashes++;
+			resetPlayerLocation(&player[l],l);
+		}
+		else if( (mvwinch(win,player[l].y, player[l].x)&A_CHARTEXT) == winCHAR )
+			showWinner(win, player[l]);
+		else
+		{
+			attron( COLOR_PAIR(6) );
+			mvwaddch(win, player[l].y, player[l].x, player[l].character);
+			attroff( COLOR_PAIR(6) );
 		}
 	}
 }
 
-void printLand(WINDOW * win)
+// wprintInMiddle:
+// 		@desc: prints the 'string' passed as an argument in the middle of the 
+// 		given window *win, at line 'row' with the attributes that were passed
+void wprintInMiddle(WINDOW *win, int row, char *string, int attrs)
+{
+	// These two variables will hold the dimensions of our window
+	int maxRows, maxCols;
+	// getmaxyx function simply gives us the maximum y and x for that window
+	getmaxyx(win, maxRows, maxCols);
+
+	// If the value of row is negative then the string will be printed
+	// |row| lines from the bottom of the window
+	if (row < 0)
+		row += maxRows -1;
+
+	wattron(win, attrs);
+	// Print string in win after moving to y line and column () so that the
+	// string is placed in the middle of the window
+	mvwprintw(win, row, (maxCols-strlen(string))/2, string);
+	wattroff(win, attrs);
+}
+
+// wprintLand:
+// 		@desc: A simple collection of print commands that shape our map,
+// 		without any player characters
+void wprintLand(WINDOW * win)
 {
 	int rows, cols;
 	getmaxyx(win, rows, cols);
@@ -488,7 +808,8 @@ void printLand(WINDOW * win)
 	wprintTimesChar(win,8,15,45,landCHAR);
 	wprintTimesChar(win,9,20,39,landCHAR);
 	// Barrier so that the boats can't go the other way
-	wprintTimesChar(win,9,59,10,landCHAR | A_INVIS);
+	wprintTimesChar(win,8,60,9,landCHAR | A_INVIS);
+	wprintTimesChar(win,10,59,10,winCHAR | A_INVIS);
 	wprintTimesChar(win,10,18,25,landCHAR);
 	wprintTimesChar(win,11,15,30,landCHAR);
 	wprintTimesChar(win,12,17,20,landCHAR);
@@ -535,310 +856,57 @@ void printLand(WINDOW * win)
 	wprintTimesChar(win,16,1,1,landCHAR);
 	wattroff(win, COLOR_PAIR(2));
 	wprintTimesChar(win,rows-1,1,-1,ACS_HLINE);
+
+	wattron(win,COLOR_PAIR(1));
+	mvwprintw(win,9,59,"--FINISH--");
+	wattroff(win,COLOR_PAIR(1));
 }
 
-bool printMap(WINDOW * win, PLAYER *player)
+// wprintPlayerData
+// 		@desc: Print both users' details (Name (crashes) and x, y coords) on 
+// 		our given window
+// 		@notice: should only be used with plrDataWin
+void wprintPlayerData(WINDOW *win, PLAYER *players)
 {
-	// Print the terrain, deleting everything else in the background
-	wclear(win);
-	printLand(win);
-	// Check for a crash between the two players
-	if( (player[0].x == player[1].x) && ( player[0].y == player[1].y ))
-	{
-			attron( COLOR_PAIR(5) );
-			mvwaddch(win,player[0].y,player[0].x, crashCHAR);
-			attroff( COLOR_PAIR(5) );
-			player[0].crashes++;
-			player[1].crashes++;
-			resetPlayerLocation(&player[0], 0);
-			resetPlayerLocation(&player[1], 1);
-	}
-	// Check, individually, whether any of them have crashed with the land
-	for(int l = 0; l < 2; l++)
-	{
-		// Check the character where the boat would be printed
-		if(	(mvwinch(win,player[l].y, player[l].x)&A_CHARTEXT) == landCHAR )
-		{
-			// If so print a crashCharacter at their location
-			attron( COLOR_PAIR(5) );
-			mvwaddch(win,player[l].y,player[l].x, crashCHAR);
-			attroff( COLOR_PAIR(5) );
-			// Move them back to their starting location
-			player[l].crashes++;
-			resetPlayerLocation(&player[l],l);
-		}
-		else if( (mvwinch(win,player[l].y, player[l].x)&A_CHARTEXT) == winCHAR )
-			// printWinScreen we need to fix that a bit
-			return true;
-		else
-		{
-			attron( COLOR_PAIR(6) );
-			mvwaddch(win, player[l].y, player[l].x, player[l].character);
-			attroff( COLOR_PAIR(6) );
-		}
-	}
-	
- 	return false;
+	mvwprintw(win,0,0,"%s: (%d) x:%d y:%d", players[0].name,
+			players[0].crashes, players[0].x, players[0].y);
+	mvwprintw(win,0,30,"| %s: (%d) x:%d y:%d", players[1].name,
+			players[1].crashes, players[1].x, players[1].y);
 }
 
-void printTitle(WINDOW *titleWin)
+// wprintTimesChar:
+// 		@desc: prints the 'character' 'length' times, starting from
+// 		'startY','startX' coordinates of the 'win' window
+void wprintTimesChar(WINDOW * win,int startY, int startX, int length, int character)
+{
+	// Move the cursor to the starting location
+	wmove(win, startY, startX);
+	// If the user has passed a negative value it means that they want 
+	// to fill the rest of the line
+	if(length < 0)
+	{
+		// Get the dimensions of our window, storing, the Y coord at startY and
+		// X coord at length. This way we can then subtract startX from length
+		// and have, exactly, the number of characters we need to fill the line
+		// (without printing on the window's border)
+		getmaxyx(win, startY, length);
+		length -= startX+1; 
+	}
+	// Add the characters
+	for(int l=0; l < length; l++ )
+		waddch(win,character);	
+}
+
+// wprintTitle:
+// 		@desc: This one could be a macro but decided against it. It prints the
+// 		title of the game at the top of the window in which it is assigned:
+// 		@notice: Even though it is not "specifically" created for the menuWin,
+// 		it is used only there
+void wprintTitle(WINDOW *titleWin)
 {
 		box(titleWin,0,0);
+		attron(COLOR_PAIR(2));
 		wprintInMiddle(titleWin,2, gameTITLE, A_BOLD);
+		attroff(COLOR_PAIR(2));
 		wprintTimesChar(titleWin, 3, 1, -1, ACS_HLINE );
-}
-
-void airArrow(WINDOW *win,int intensity, int direction)
-{
-	// This function simply prints the arrow we want to describe the wind
-	// There are 4 types of arrows based on direction (UP,DOWN,LEFT,RIGHT)
-	// and 4 categories based on intensity (lvl1,2,3,4) each of which is 
-	// "expressed" by a different color
-	mvwaddch(win,0,0,ACS_VLINE);
-	wattron(win, COLOR_PAIR(intensity));
-	// Going clockwise
-	wprintw(win," WIND: %d  ", intensity);
-	switch(direction)
-	{
-		case 0:
-			waddch(win,ACS_UARROW);
-			break;
-		case 1:
-			waddch(win,ACS_RARROW);
-			break;
-		case 2:
-			waddch(win,ACS_DARROW);
-			break;
-		case 3:
-			waddch(win,ACS_LARROW);
-			break;
-	}
-	wattroff(win, COLOR_PAIR(intensity));
-}
-
-void showChoices(WINDOW *win, PLAYER player)
-{
-	wclear(win);
-
-	mvwprintw(win,0,0, "%s: Choices  %d:", player.name, player.noOfChoices);
-	if ( player.noOfChoices > 0 )
-		wprintw(win, " %c", player.course[0]); 
-	if ( player.noOfChoices > 1 )
-		wprintw(win, " %c", player.course[1]); 
-	if ( player.noOfChoices > 2 )
-		wprintw(win, " %c", player.course[2]); 
-	wrefresh(win);
-}
-
-void showMenu(WINDOW *menuWin)
-{
-	MENU *mainMenu;
-	ITEM *playerChoice,
-		 *currentItem,
-		 **myItems;
-	int ch;
-	
-	// The number of options in our menu is equal to the number of elements
-	// in the menuOptions array, initialized globally
-	// Memory for the items we want to create must be reserved:
-	// - the pointer myItems simply points to the beginning of our ITEM * array
-	// - the (ITEM **) is to turn the pointer returned by calloc into a ITEM**
-	// type of pointer
-	myItems = (ITEM **)calloc(menuOPTIONS, sizeof(ITEM *));
-
-	// Filling the array with our menu options, described in our menuOptions ar
-	// The second argument of the new_item function is the description
-	// of that item, displayed right next to the item. Since we want to 
-	// keep the interface minimal we decided against having a description.
-	// We supply a NULL pointer to have an empty description.
-	// The set_item_userptr() function is responsible for the function that
-	// runs when the specific item is selected
-	
-	for(int l = 0; l < menuOPTIONS; l++)
-		myItems[l] = new_item( menuOptions[l], NULL);
-	
-	wclear(menuWin);
-	keypad(menuWin, true);
-	//  We create a menu, with items all of our initial options, 
-	//  in the desired form
-	mainMenu = new_menu((ITEM **)myItems);
-	// Set main window and subwindow for our menu 
-	// (simply creating it would not be enough, the two of them must be
-	// linked together)
-	set_menu_win(mainMenu, menuWin);
-	// The derwin() function is the same as subwin(), creating a virtual
-	// subwindow in the window supplemented, with the only difference being
-	// that the coordinates are relative to our window
-	// ( not to stdscr, the standard terminal screen )
-	set_menu_sub(mainMenu, derwin(menuWin, menuOPTIONS, 20, (menuHEIGHT-menuOPTIONS-2)/2,(menuWIDTH-20)/2));
-	// Set which character should point at our current option:
-	set_menu_mark(mainMenu, " => ");
-	// Print a border for our menu and a title:
-	// 0,0 gives default characters for the vertical and horizontal lines
-	box( menuWin, 0, 0 );
-	// Print the gameTITLE in the middle of the 1st line of our menu window 
-	printTitle(menuWin);
-	// We set the menu options: 
-	//  We make our menu visible, and initialize our 'choiceIsMade' boolean
-	//  to false
-	//	wprintInMiddle(stdscr, -1, "F1 to exit", COLOR_PAIR(1)| A_BLINK);
-	refresh();
-
-	post_menu(mainMenu);
-	wrefresh(menuWin);
-	
-	ch = 0;
-	while( ch != 10 )
-	{
-		ch = wgetch(menuWin);
-		switch(ch)
-		{
-			case KEY_DOWN:
-				menu_driver(mainMenu, REQ_DOWN_ITEM);
-				break;
-			case KEY_UP:
-				menu_driver(mainMenu, REQ_UP_ITEM);
-				break;
-			// The value 10 is associated with the enter key
-			case 10:
-				playerChoice = current_item(mainMenu);
-		}
-		wrefresh(menuWin);
-	}
-	wclear(menuWin);
-	wrefresh(menuWin);
-	unpost_menu(mainMenu);
-	for(int l=0; l < menuOPTIONS; l++)
-		free_item(myItems[l]);
-	free_menu(mainMenu);
-
-	if(strcmp(item_name(playerChoice),"Controls") == 0)
-		showIntro(menuWin);
-	else if(strcmp(item_name(playerChoice),"Credits") == 0)
-		showCredits(menuWin);
-	else if(strcmp(item_name(playerChoice),"Exit") == 0)
-		showExit(menuWin);
-}
-
-void showCredits(WINDOW *credWin)
-{
-		printTitle(credWin);
-		wprintInMiddle(credWin,5, "Created by:", A_NORMAL);
-		wprintInMiddle(credWin,6, "Lamprinos Chatziioannou", A_NORMAL);
-		wprintInMiddle(credWin,7, "Georgios Panagiotidis", A_NORMAL);
-		wprintInMiddle(credWin,-2, "Press any key to exit.", A_NORMAL);
-		wrefresh(credWin);
-		getch();
-		showMenu(credWin);
-}
-
-void showExit(WINDOW *exitWin)
-{
-		printTitle(exitWin);
-		wprintInMiddle(exitWin,6, "Thanks for playing our game", A_BOLD);
-		wprintInMiddle(exitWin,8, "Created by:", A_NORMAL);
-		wprintInMiddle(exitWin,9, "Lamprinos Chatziioannou", A_NORMAL);
-		wprintInMiddle(exitWin,10, "Georgios Panagiotidis", A_NORMAL);
-		wprintInMiddle(exitWin,-2, "Press any key to exit.", A_NORMAL);
-		wrefresh(exitWin);
-		getch();
-		endwin();
-		exit(1);
-}
-
-void showIntro(WINDOW *introWin)
-{
-	//Screen 1
-		printTitle(introWin);
-		wprintInMiddle(introWin, 4, "Hello friends and welcome to the", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 5, gameTITLE, A_BOLD | COLOR_PAIR(4) | A_BLINK);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 7, "In this, multiplayer, game the two of you", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 8, "Are trying to beat each other on your way to", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 9, "The finish line! Each of you has up to 5", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 10, "keystrokes per turn, but...", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 11, "WATCH OUT!", A_BOLD);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 12, "You do not know when wind will strike!", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, -1, "Press any key to continue", A_BLINK);
-		wrefresh(introWin);
-		getch();
-		wclear(introWin);
-	// Screen 2
-		printTitle(introWin);
-		wprintInMiddle(introWin, 4, "However, fear not!", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 6, "You will know everything beforehand!", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 7, "Just make sure to pay attention to ", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 8, "the wind arrow and intensity on the bottom", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 9, "right corner, giving you both intensity", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 10, "AND DIRECTION!", A_BOLD);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 12, "Use them wisely", A_UNDERLINE);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, -1, "Press any key to continue", A_BLINK);
-		wrefresh(introWin);
-		getch();
-		wclear(introWin);
-	// Screen 3
-		printTitle(introWin);
-		wprintInMiddle(introWin, 5, "Now, before you begin your journey!", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 6, "In order to move each one of you will", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 7, "use the arrow keys on their turn", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 8, "If you've made a wrong choice, dont worry", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 9, "You can always use backspace to fix your", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 10, "keystrokes, which will be shown on the bottom", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 11, "left corner. When you have finished with your", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 12, "keystrokes, press enter so that the next phase", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, 13, "will begin.", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, -2, "You can always exit using F1", A_NORMAL);
-		wrefresh(introWin);
-		getch();
-		wprintInMiddle(introWin, -1, "Press any key to continue", A_BLINK);
-		wrefresh(introWin);
-		getch();
-		wclear(introWin);
 }
