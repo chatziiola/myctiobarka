@@ -4,50 +4,82 @@
 και μηχανικών υπολογιστών του Α.Π.Θ. , υπό την επίβλεψη του κ. Χρήστου
 Σεβαστιάδη.
 
-// Γιώργη: Σήμερα θέλω να αναλάβεις την σουλούπωση του συγκεκριμένου :/
-// και μερικά κομμάτια έρευνας, ξέρω πως είναι μάλλον ολιγον τι βαρετό αλλά θα
-// βοηθήσει να προχωρήσει περισσότερο η εργασία
-// Στα περισσότερα σημεία σου γράφω τι σκέφτομαι
-
 // Cheatsheet για markdown
 // *ιταλικα* **εντονα** [κειμενο που φαινεται](link)
 
 # Περίληψη
-// Γιώργη: γράφεις γενικά τους κανόνες ( μην κάνεις αναφορά στο μενου, με το που
-τελειώσω με τον κώδικα για εκείνο και δω πως θα το κάνουμε, τελικά να
-λειτουργεί θα το προσθέσω εγώ)
-Το (sailing-game) είναι ένα ανταγωνιστικό παιχνίδι δύο παικτών οι οποίοι χειρίζονται από ένα ιστιοφόρο. Στόχος του παιχνιδιού είναι ο παίκτης να οδηγήσει το σκάφος του στην θέση εκκίνησής του αφού ολοκληρώσει πρώτα έναν περίπλου του νησιού. Οι κινήσεις διεξάγονται σε γύρους όπου ο κάθε παίχτης έχει την δυνατότητα να ορίσει την κατεύθυνση του σκάφους του με τρία key strokes. Οι παίκτες έχουν στην διάθεση τους πεπερασμένο χρόνο σε κάθε γύρο για να δηλώσουν την κίνησή τους ο οποίος, όμως, είναι μικρότερος στα υψηλότερα επίπεδα δυσκολίας. Παρόλα αυτά, η είσοδος του παίκτη δεν είναι ο μόνος παράγοντας που ρυθμίζει την πορεία του σκάφους, καθώς ένα από τα τρία key strokes του κάθε παίχτη, που επιλέγεται τυχαία, έχει διπλάσια ένταση από τα άλλα δύο. Επιπλέον, την πορεία του πλοίου επηρεάζει ο άνεμος, ο οποίος μεταβάλλεται ανά γύρο τυχαία, τόσο σε ένταση όσο και σε κατεύθυνση. Η ένταση του ανέμου λαμβάνει τιμές από 0 εώς 10 και καθορίζει πόσες θέσεις θα μετακινήσει το καράβι προς την κατεύθυνση του. Ο άνεμος προσδιορίζεται από ένα χρωματιστό βέλος. Το χρώμα του βέλους είναι πράσινο αν εχει τιμή 0 ή 1, κυανό αν έχει τιμή 2 ή 3, μπλε αν έχει τιμή 5 ή 6, ματζέντα αν έχει τιμή 7 ή 8 και κόκκινο αν έχει την τιμή 9. Έαν το σκάφος κάποιου παίκτη συγκρουστεί με τη στεριά, αυτός ξαναξεκινάει από την αρχική του θέση, ενώ αν συγκρουστούν μεταξύ τους ξαναξεκινούν και οι δύο από τις αρχικές τους θέσεις. Τα κουμπιά με τα οποία ο πρώτος παίχτης δηλώνει την κίνησή του είναι τα W, A, S, D ενώ ο δεύτερος τη δηλώνει με τα βέλη κατεύθυνσης.
 
-## Ανάλυση
+Το ΜΥCΤΙΟΒΑΡΚΑ είναι ένα ανταγωνιστικό παιχνίδι δύο παικτών οι οποίοι χειρίζονται από ένα ιστιοφόρο. Στόχος του παιχνιδιού είναι ο παίκτης να οδηγήσει το σκάφος του στην θέση εκκίνησής του αφού ολοκληρώσει πρώτα έναν περίπλου του νησιού. Οι κινήσεις διεξάγονται σε γύρους όπου ο κάθε παίχτης έχει την δυνατότητα να ορίσει την κατεύθυνση του σκάφους του με τρία key strokes. Παρόλα αυτά, η είσοδος του παίκτη δεν είναι ο μόνος παράγοντας που ρυθμίζει την πορεία του σκάφους, καθώς την πορεία του πλοίου επηρεάζει ο άνεμος, ο οποίος μεταβάλλεται ανά γύρο τυχαία, τόσο σε ένταση όσο και σε κατεύθυνση. Η ένταση του ανέμου λαμβάνει τιμές από 1 εώς 4 και καθορίζει πόσες θέσεις θα μετακινήσει το καράβι προς την κατεύθυνση του. Η κατεύθυνση του ανέμου προσδιορίζεται από ένα χρωματιστό βέλος. Το χρώμα του βέλους είναι άσπρο αν έχει τιμή 1, πράσινο αν έχει τιμή 2, μπλε αν έχει τιμή 3 και κόκκινο αν έχει τιμή 4. Έαν το σκάφος κάποιου παίκτη συγκρουστεί με τη στεριά, αυτός ξαναξεκινάει από την αρχική του θέση, ενώ αν συγκρουστούν μεταξύ τους ξαναξεκινούν και οι δύο από τις αρχικές τους θέσεις. Τα κουμπιά με τα οποία οι παίχτες δηλώνουν διαδοχικά την κίνησή του είναι τα βέλη κατεύθυνσης.
 
-// Γιώργη: Βρες αν υπάρχει στο ιντερνετ κάποιο *πρότυπο* σχολιασμού και 
-documentation, ίσως για το δεύτερο να είναι καλό ένα *προτυπο* manual page
-// Κατα τα άλλα θα το γράψω εγώ το συγκεκριμένο, καθώς θα είναι πιο δυσκολο για
-σενα αν προχωρήσω τον κώδικά να τον συνοψίσεις
+# Ανάλυση
+
+
+## LIibraries used
+
+### unistd.h
+
+- sleep(): Wait for a specified time.
+
+### ncurses.h
+
+- box(): Creates window borders, horizontal and vertical lines.
+- cbreak(): Disable line buffering so that we get each keypress in real time.
+- curs_set(): It sets the appearance of the cursor based on the value of visibility, 0 in our case for invisibility.
+- echo(): It is used to make the characters that are typed visible.
+- endwin(): Ends the curses mode.
+- getch(): Same with wgetch but for the stdscr.
+- getmaxyx(): Store the current beginning coordinates and size of the specified window.
+- init_pair(): Sets foreground and backgrond colors.
+- initscr(): Starts the curses mode.
+- keypad(): Makes the function keys readable.
+- mvwaddch(): Does the same thing as addch but it firstly moves the cursor at the desired coordinates.
+- mvwinch: Returns the character of type chtype().
+- mvwprintw(): It moves the cursor to a specified coordinate of the associated window and sends formatted output.
+- noecho(): It is used to make the characters that are typed not visible.
+- refresh(): Same with wrefresh but for the stdscr.
+- start_color(): Enables colors.
+- waddch(): Prints a character at the associated window.
+- ttroff(): Turns off the named attributes without affecting any others.
+- wattron(): Turns on the named attributes without affecting any others.
+- wclear(): Clears the associated window.
+- wgetch(): Reads a character from the associated window.
+- wgetstr(): Accepts character strings from curses terminal keyboard.
+- wmove(): Moves the cursor associated with the window.
+- wrefresh(): Refreshes the associated window so that the changes made are visible.
+
+### menu.h
+
+- current_item(): Returns a pointer to the current item in the given menu.
+- free_item(): De-allocates an item.
+- free_menu(): De-allocates the menu.
+- item_name(): Returns the name part of the given item.
+- menu_driver(): Command-processing loop of the menu system.
+- new_item(): Creates an item.
+- new_menu(): Creates a menu.
+- post_menu(): Posts the menu.
+- set_menu_mark(): Sets which character should point at our current option.
+- set_menu_sub(): Sets the sub-window for our menu.
+- set_menu_win(): Sets the main window for our menu.
+- unpost_menu(): Unposts the menu.
+
+### stdio.h
+
+- printf: Sends formatted output
+
+### string.h
+
+- strcmp(): Compares two strings.
+
+### stdlib.h
+
+- calloc(): Allocates the requested memory and returns a pointer to it.
+- exit(): Terminates the program
+- rand(): Returns a random number.
+- srand(): Go To [stdlib.h](https://github.com/chatziiola/sailing-game#time.h)
+
+### time.h
+
+- srand(time()): It is used to generate random number sequences, the difference with rand is that the seed value is continuously changing in order to avoid repetition of number sequences
 
 ## Συναρτήσεις 
-// Όταν τελειώσει το πρόγραμμα θα βάλουμε εδώ χωρισμένες σε υποενότητες όλες
-τις συναρτήσεις που φτιάχναμε και χρησιμοποιούμε
-
-## References 
-// Γιώργη θέλω να συμπληρώσεις αυτό το κομμάτι (με ωραία γραφή ξέρεις)
-- Βάλε υποενότητες, ncurses, animation, sound, χρόνος
-### Ncurses
-
-### Animation
-
-### Sound
-
-### Time
-
-# Features to be added
-- [ ] music
-- [ ] colorschemes
-- [ ] add time
-- [ ] load last state -> save
-- [ ] esc menu functionality
-- [ ] load last state -> save
-- [ ] load last state -> save
-- [ ] load last state -> save
-
 
