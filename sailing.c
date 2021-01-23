@@ -341,6 +341,9 @@ int setCourse(WINDOW *plrDataWin, PLAYER *player)
 				break;
 			case 10:
 				return 1;
+			case KEY_F(1):
+				endwin();
+				exit(1);
 		}
 		// Show the options
 		showChoices(plrDataWin, *player);
@@ -710,7 +713,7 @@ void showMenu(WINDOW *menuWin)
 	free_menu(mainMenu);
 
 	if(strcmp(item_name(playerChoice),"Controls") == 0)
-		showControls(menuWin);
+		showIntro(menuWin);
 	else if(strcmp(item_name(playerChoice),"Credits") == 0)
 		showCredits(menuWin);
 	else if(strcmp(item_name(playerChoice),"Exit") == 0)
@@ -743,77 +746,99 @@ void showExit(WINDOW *exitWin)
 		exit(1);
 }
 
-void showControls(WINDOW *ctrlWin)
-{
-		printTitle(ctrlWin);
-		wprintInMiddle(ctrlWin,6, "Player 1:", A_BOLD);
-		wprintInMiddle(ctrlWin,7, "Moves with the arrow keys, 3 keystrokes per turn", A_NORMAL);
-		wprintInMiddle(ctrlWin,10, "Player 2:", A_BOLD);
-		wprintInMiddle(ctrlWin,11, "Moves with WASD, also 3 keystrokes per turn", A_NORMAL);
-		wprintInMiddle(ctrlWin,-2, "Press any key to exit.", A_NORMAL);
-		wrefresh(ctrlWin);
-		getch();
-		showMenu(ctrlWin);
-}
-
 void showIntro(WINDOW *introWin)
 {
+	//Screen 1
 		printTitle(introWin);
 		wprintInMiddle(introWin, 4, "Hello friends and welcome to the", A_NORMAL);
 		wrefresh(introWin);
-		sleep(1);
+		getch();
 		wprintInMiddle(introWin, 5, gameTITLE, A_BOLD | COLOR_PAIR(4) | A_BLINK);
 		wrefresh(introWin);
-		sleep(2);
+		getch();
 		wprintInMiddle(introWin, 7, "In this, multiplayer, game the two of you", A_NORMAL);
 		wrefresh(introWin);
-		sleep(1.5);
+		getch();
 		wprintInMiddle(introWin, 8, "Are trying to beat each other on your way to", A_NORMAL);
 		wrefresh(introWin);
-		sleep(1.5);
+		getch();
 		wprintInMiddle(introWin, 9, "The finish line! Each of you has up to 5", A_NORMAL);
 		wrefresh(introWin);
-		sleep(1.5);
+		getch();
 		wprintInMiddle(introWin, 10, "keystrokes per turn, but...", A_NORMAL);
 		wrefresh(introWin);
-		sleep(1.5);
+		getch();
 		wprintInMiddle(introWin, 11, "WATCH OUT!", A_BOLD);
 		wrefresh(introWin);
-		sleep(2);
+		getch();
 		wprintInMiddle(introWin, 12, "You do not know when wind will strike!", A_NORMAL);
 		wrefresh(introWin);
-		sleep(4);
+		getch();
 		wprintInMiddle(introWin, -1, "Press any key to continue", A_BLINK);
 		wrefresh(introWin);
 		getch();
 		wclear(introWin);
+	// Screen 2
 		printTitle(introWin);
 		wprintInMiddle(introWin, 4, "However, fear not!", A_NORMAL);
 		wrefresh(introWin);
-		sleep(2);
+		getch();
 		wprintInMiddle(introWin, 6, "You will know everything beforehand!", A_NORMAL);
 		wrefresh(introWin);
-		sleep(2);
+		getch();
 		wprintInMiddle(introWin, 7, "Just make sure to pay attention to ", A_NORMAL);
 		wrefresh(introWin);
-		sleep(1.5);
+		getch();
 		wprintInMiddle(introWin, 8, "the wind arrow and intensity on the bottom", A_NORMAL);
 		wrefresh(introWin);
-		sleep(1.5);
+		getch();
 		wprintInMiddle(introWin, 9, "right corner, giving you both intensity", A_NORMAL);
 		wrefresh(introWin);
-		sleep(1.5);
+		getch();
 		wprintInMiddle(introWin, 10, "AND DIRECTION!", A_BOLD);
 		wrefresh(introWin);
-		sleep(1.5);
+		getch();
 		wprintInMiddle(introWin, 12, "Use them wisely", A_UNDERLINE);
 		wrefresh(introWin);
-		sleep(1);
-		wprintInMiddle(introWin, 13, "You do not know when wind will strike!", A_NORMAL);
-		wrefresh(introWin);
-		sleep(4);
+		getch();
 		wprintInMiddle(introWin, -1, "Press any key to continue", A_BLINK);
 		wrefresh(introWin);
 		getch();
-
+		wclear(introWin);
+	// Screen 3
+		printTitle(introWin);
+		wprintInMiddle(introWin, 5, "Now, before you begin your journey!", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 6, "In order to move each one of you will", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 7, "use the arrow keys on their turn", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 8, "If you've made a wrong choice, dont worry", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 9, "You can always use backspace to fix your", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 10, "keystrokes, which will be shown on the bottom", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 11, "left corner. When you have finished with your", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 12, "keystrokes, press enter so that the next phase", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, 13, "will begin.", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, -2, "You can always exit using F1", A_NORMAL);
+		wrefresh(introWin);
+		getch();
+		wprintInMiddle(introWin, -1, "Press any key to continue", A_BLINK);
+		wrefresh(introWin);
+		getch();
+		wclear(introWin);
 }
