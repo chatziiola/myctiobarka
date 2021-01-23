@@ -1,7 +1,7 @@
 # Sailing Game
 Συγγραφείς: Λαμπρινός Χατζηιωάννου και Γεώργιος Παναγιωτίδης για το μάθημα
 του δομημένου προγραμματισμού, 1ου εξαμήνου του τμήματος Ηλεκτρολόγων Μηχανικών
-και μηχανικών υπολογιστών του Α.Π.Θ. , υπό την επίβλεψη του κ. Χρήστου
+και Mηχανικών Υπολογιστών του Α.Π.Θ. , υπό την επίβλεψη του κ. Χρήστου
 Σεβαστιάδη.
 
 # Περίληψη
@@ -9,7 +9,6 @@
 Το ΜΥCΤΙΟΒΑΡΚΑ είναι ένα ανταγωνιστικό παιχνίδι δύο παικτών οι οποίοι χειρίζονται από ένα ιστιοφόρο. Στόχος του παιχνιδιού είναι ο παίκτης να οδηγήσει το σκάφος του στην θέση εκκίνησής του αφού ολοκληρώσει πρώτα έναν περίπλου του νησιού. Οι κινήσεις διεξάγονται σε γύρους όπου ο κάθε παίχτης έχει την δυνατότητα να ορίσει την κατεύθυνση του σκάφους του με τρία key strokes. Παρόλα αυτά, η είσοδος του παίκτη δεν είναι ο μόνος παράγοντας που ρυθμίζει την πορεία του σκάφους, καθώς την πορεία του πλοίου επηρεάζει ο άνεμος, ο οποίος μεταβάλλεται ανά γύρο τυχαία, τόσο σε ένταση όσο και σε κατεύθυνση. Η ένταση του ανέμου λαμβάνει τιμές από 1 εώς 4 και καθορίζει πόσες θέσεις θα μετακινήσει το καράβι προς την κατεύθυνση του. Η κατεύθυνση του ανέμου προσδιορίζεται από ένα χρωματιστό βέλος. Το χρώμα του βέλους είναι άσπρο αν έχει τιμή 1, πράσινο αν έχει τιμή 2, μπλε αν έχει τιμή 3 και κόκκινο αν έχει τιμή 4. Έαν το σκάφος κάποιου παίκτη συγκρουστεί με τη στεριά, αυτός ξαναξεκινάει από την αρχική του θέση, ενώ αν συγκρουστούν μεταξύ τους ξαναξεκινούν και οι δύο από τις αρχικές τους θέσεις. Τα κουμπιά με τα οποία οι παίχτες δηλώνουν διαδοχικά την κίνησή του είναι τα βέλη κατεύθυνσης.
 
 # Ανάλυση
-
 
 ## Libraries used
 
@@ -36,8 +35,7 @@
 - refresh(): Same with wrefresh but for the stdscr.
 - start_color(): Enables colors.
 - waddch(): Prints a character at the associated window.
-- ttroff(): Turns off the named attributes without affecting any others.
-- wattron(): Turns on the named attributes without affecting any others.
+- attron(), attroff(): Turns on/off the named attributes without affecting any others.
 - wclear(): Clears the associated window.
 - wgetch(): Reads a character from the associated window.
 - wgetstr(): Accepts character strings from curses terminal keyboard.
@@ -72,7 +70,7 @@
 - calloc(): Allocates the requested memory and returns a pointer to it.
 - exit(): Terminates the program
 - rand(): Returns a random number.
-- srand(): Go To [stdlib.h](https://github.com/chatziiola/sailing-game#time.h)
+- srand(): see time.h
 
 ### time.h
 
