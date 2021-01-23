@@ -917,6 +917,8 @@ void wprintTimesChar(WINDOW * win,int startY, int startX, int length, int charac
 void wprintTitle(WINDOW *titleWin)
 {
 		box(titleWin,0,0);
+		wattron(titleWin,COLOR_PAIR(2));
 		wprintInMiddle(titleWin,2, gameTITLE, A_BOLD);
+		wattroff(titleWin,COLOR_PAIR(2));
 		wprintTimesChar(titleWin, 3, 1, -1, ACS_HLINE );
 }
