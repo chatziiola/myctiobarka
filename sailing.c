@@ -35,7 +35,7 @@ typedef struct _game_player{
 }PLAYER;
 
 
-char *menuOptions[] = {"Play","Controls","Credits","Exit",(char *)NULL};
+char *menuOptions[] = {"Play","Credits","Exit",(char *)NULL};
 
 void airArrow(WINDOW *win,int intensity, int direction);
 void initCurses(WINDOW **gameWin, WINDOW **menuWin);
@@ -82,8 +82,6 @@ int main()
 	WINDOW *plrDataWin  = derwin(gameWin,1,60,18,2); 
 	WINDOW *wndDataWin	= derwin(gameWin,1,10,18,66);
 
-	// wprintLand(gameWin);
-	// wrefresh(gameWin);
 	showIntro(menuWin);
 
 	initPlayers(menuWin, players);
@@ -552,10 +550,12 @@ void showMenu(WINDOW *menuWin)
 	set_menu_mark(mainMenu, " => ");
 	// Print a border for our menu and a title:
 	// 0,0 gives default characters for the vertical and horizontal lines
-	box( menuWin, 0, 0 );
+	box(menuWin, 0, 0 );
 	// Print the gameTITLE in the middle of the 1st line of our menu window 
 	wprintTitle(menuWin);
-	//  We make our menu visible
+	//  We make our menu visible, the refresh is necessary here so that 
+	//  the program functions properly
+	refresh();
 	post_menu(mainMenu);
 	wrefresh(menuWin);
 	
@@ -577,17 +577,16 @@ void showMenu(WINDOW *menuWin)
 		}
 		wrefresh(menuWin);
 	}
-	// simply clean up the menu screen
 	wclear(menuWin);
+	wrefresh(menuWin);
+	// simply clean up the menu screen
 	unpost_menu(mainMenu);
 	// free the menu memory
 	for(int l=0; l < menuOPTIONS; l++)
 		free_item(myItems[l]);
 	free_menu(mainMenu);
 
-	if(strcmp(item_name(playerChoice),"Controls") == 0)
-		showIntro(menuWin);
-	else if(strcmp(item_name(playerChoice),"Credits") == 0)
+	if(strcmp(item_name(playerChoice),"Credits") == 0)
 		showCredits(menuWin);
 	else if(strcmp(item_name(playerChoice),"Exit") == 0)
 		showExit(menuWin);
@@ -636,7 +635,6 @@ void showExit(WINDOW *exitWin)
 // 		showMenu
 void showIntro(WINDOW *introWin)
 {
-	//Screen 1
 		wprintTitle(introWin);
 		wprintInMiddle(introWin, 4, "Hello friends and welcome to the", A_NORMAL);
 		wrefresh(introWin);
@@ -919,8 +917,6 @@ void wprintTimesChar(WINDOW * win,int startY, int startX, int length, int charac
 void wprintTitle(WINDOW *titleWin)
 {
 		box(titleWin,0,0);
-		wattron(titleWin, COLOR_PAIR(2));
 		wprintInMiddle(titleWin,2, gameTITLE, A_BOLD);
-		wattroff(titleWin, COLOR_PAIR(2));
 		wprintTimesChar(titleWin, 3, 1, -1, ACS_HLINE );
 }
