@@ -1,6 +1,7 @@
 /*
  * 'Sailing-game' by Chatziioannou Lamprinos("chatziiol@ece.auth.gr")
  * and George Panagiotidis("geopanthe@ece.auth.gr")
+ * --compile with: -lmenu -lncurses
  */
 
 #include <unistd.h>

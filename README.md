@@ -1,4 +1,4 @@
-# Sailing Game
+# MYCTIOBAPKA
 Συγγραφείς: Λαμπρινός Χατζηιωάννου και Γεώργιος Παναγιωτίδης για το μάθημα
 του δομημένου προγραμματισμού, 1ου εξαμήνου του τμήματος Ηλεκτρολόγων Μηχανικών
 και Mηχανικών Υπολογιστών του Α.Π.Θ. , υπό την επίβλεψη του κ. Χρήστου
@@ -102,8 +102,6 @@
 ### time.h
 
 - srand(time()): It is used to generate random number sequences, the difference with rand is that the seed value is continuously changing in order to avoid repetition of number sequences
-
-## Συναρτήσεις 
 
 ## Πηγές
 - http://www.ibiblio.org/pub/Linux/docs/HOWTO/other-formats/pdf/NCURSES-Programming-HOWTO.pdf#%5B%7B%22num%22%3A475%2C%22gen%22%3A0%7D%2C%7B%22name%22%3A%22XYZ%22%7D%2C0%2C734%2C0%5D
