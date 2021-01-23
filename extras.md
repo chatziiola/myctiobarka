@@ -9,3 +9,13 @@
  */
 
 
+// gameWIDTH, gameHEIGHT
+//		@usage: these two values are the dimensions of our game window
+//				in which the game will take place
+
+// menuWIDTH, menuHEIGHT
+//		@usage: these two values are the dimensions of our menu window, 
+//				which the users will be able to access at launch and when
+//				ESC is pressed
+// landCHAR, crashCHAR, stdscrCHAR
+// 		@usage: obvious
