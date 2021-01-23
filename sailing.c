@@ -648,10 +648,10 @@ void showIntro(WINDOW *introWin)
 		wprintInMiddle(introWin, 8, "Are trying to beat each other on your way to", A_NORMAL);
 		wrefresh(introWin);
 		getch();
-		wprintInMiddle(introWin, 9, "The finish line! Each of you has up to 5", A_NORMAL);
+		wprintInMiddle(introWin, 9, "The finish line! Each of you has up to", A_NORMAL);
 		wrefresh(introWin);
 		getch();
-		wprintInMiddle(introWin, 10, "keystrokes per turn, but...", A_NORMAL);
+		wprintInMiddle(introWin, 10, "3 keystrokes per turn, but...", A_NORMAL);
 		wrefresh(introWin);
 		getch();
 		wprintInMiddle(introWin, 11, "WATCH OUT!", A_BOLD);
