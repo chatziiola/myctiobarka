@@ -1,9 +1,9 @@
 # MYCTIOBAPKA
-![Successfully graded](https://img.shields.io/badge/Successfully_graded-%E2%9C%94%EF%B8%8F-green)
+![Successfully graded](https://img.shields.io/badge/Successfully_graded-%E2%9C%94%EF%B8%8F-green) ![Successfully graded](https://img.shields.io/badge/Course_passed-%E2%9C%94%EF%B8%8F-green)
 
 Συγγραφείς: **Λαμπρινός Χατζηιωάννου** και **Γεώργιος Παναγιωτίδης** για το μάθημα του δομημένου προγραμματισμού, 1ου εξαμήνου του τμήματος Ηλεκτρολόγων Μηχανικών και Mηχανικών Υπολογιστών του Α.Π.Θ., υπό την επίβλεψη του κ. **Χρήστου Σεβαστιάδη**.
 
-![Game Logo](logo.png)
+![Game Logo](myctiobarka-logo.png)
 
 # Περίληψη
 
@@ -14,13 +14,14 @@
 Σε περίπτωση σύγκρουσης με τη στεριά, ο παίκτης ξαναξεκινάει από την αρχική του θέση. Αν οι παίκτες συγκρουστούν μεταξύ τους, επιστρέφουν και οι δύο στην αρχική τους θέση. Οι κινήσεις δηλώνονται με τα βέλη κατεύθυνσης.
 
 # Οδηγίες Χρήσης - Ανάλυση
+> Έχει χρησιμοποιηθεί εκτενώς η λειτουργικότητα των shields.io για να δείξουμε την λειτουργικότητα των κουμπιών/επιλογών: ![button](https://img.shields.io/badge/button-777777?style=for-the-badge&logo=playstation&logoColor=white)
 
 Το παιχνίδι αρχίζει ενεργοποιώντας τις δυνατότητες παραθύρων με τη βιβλιοθήκη `ncurses` μέσω της συνάρτησης `initCurses()`. Στη συνέχεια, εμφανίζεται το μενού (`showMenu()`), το οποίο περιλαμβάνει:
 - Τερματισμό του παιχνιδιού (`showExit()`),
-- Προβολή *Credits* (`showCredits()`), από όπου ο χρήστης μπορεί να επιστρέψει στο μενού, και
-- Έναρξη του παιχνιδιού (*PLAY*).
+- Προβολή ![Credits](https://img.shields.io/badge/Credits-777777?style=for-the-badge&logo=playstation&logoColor=white) (`showCredits()`), από όπου ο χρήστης μπορεί να επιστρέψει στο μενού, και
+- Έναρξη του παιχνιδιού (![PLAY](https://img.shields.io/badge/PLAY-777777?style=for-the-badge&logo=playstation&logoColor=white)).
 
-Επιλέγοντας *PLAY*, ο παίκτης εισέρχεται στην εισαγωγική οθόνη του παιχνιδιού (`showIntro()`). Ακολουθεί η αρχικοποίηση των παικτών με την `initPlayers()`, όπου οι χρήστες δηλώνουν τα ονόματα (`setPlayerName()`) και τους χαρακτήρες τους (`setPlayerChar()`). Το παιχνίδι συνεχίζεται μέχρι να νικήσει κάποιος ή μέχρι να πατηθεί το πλήκτρο `F1`, οπότε τερματίζεται το παιχνίδι.
+Επιλέγοντας ![PLAY](https://img.shields.io/badge/PLAY-777777?style=for-the-badge&logo=playstation&logoColor=white), ο παίκτης εισέρχεται στην εισαγωγική οθόνη του παιχνιδιού (`showIntro()`). Ακολουθεί η αρχικοποίηση των παικτών με την `initPlayers()`, όπου οι χρήστες δηλώνουν τα ονόματα (`setPlayerName()`) και τους χαρακτήρες τους (`setPlayerChar()`). Το παιχνίδι συνεχίζεται μέχρι να νικήσει κάποιος ή μέχρι να πατηθεί το πλήκτρο `F1`, οπότε τερματίζεται το παιχνίδι.
 
 Η διαδικασία παιχνιδιού (`playATurn()`) περιλαμβάνει τα εξής βήματα:
 - Εμφάνιση του χάρτη (`wprintCurrentState()`),
