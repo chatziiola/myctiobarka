@@ -1,6 +1,8 @@
 # MYCTIOBAPKA
 ![Successfully graded](https://img.shields.io/badge/Successfully_graded-%E2%9C%94%EF%B8%8F-green) ![Successfully graded](https://img.shields.io/badge/Course_passed-%E2%9C%94%EF%B8%8F-green)
 
+> In essence this is a 2D sailing (multiplayer) game developed using ncurses
+
 Συγγραφείς: **Λαμπρινός Χατζηιωάννου** και **Γεώργιος Παναγιωτίδης** για το μάθημα του δομημένου προγραμματισμού, 1ου εξαμήνου του τμήματος Ηλεκτρολόγων Μηχανικών και Mηχανικών Υπολογιστών του Α.Π.Θ., υπό την επίβλεψη του κ. **Χρήστου Σεβαστιάδη**.
 
 <img src="myctiobarka-logo.png" width="50%"/>
